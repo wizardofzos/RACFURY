@@ -23,7 +23,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install xmi-reader
+        pip install git+https://github.com/wizardofzos/xmi.git@creation
        
     - name: Run processing script
       run: |
