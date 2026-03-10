@@ -40,6 +40,6 @@ jobs:
         if git diff --cached --quiet; then
           echo "No changes detected"
         else
-          git commit -m "Automated XMI processing"
+          git commit -m "Automated XMI generation"
           git push
         fi
