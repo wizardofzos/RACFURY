@@ -72,6 +72,15 @@ OPERCMDS:MVS.VARY.TCPIP.*:CONTROL
 | `TSOAUTH`   | TSO command authorizations               |
 | `SDSF`      | SDSF panel and filter access             |
 | `SURROGAT`  | Surrogate submission profiles            |
+| `XFACILIT`  | As `FACILITY` just with the longer names |
+| `JESJOBS`   | What can we submit/cancel                |
+| `TERMINAL`  | What (TSO) terminals can we access       |
+| `APPL`      | What applications? (TSO/CICS/TWS/etc.)   |
+| `VTAMAPPL`  | Can we open some ACBs?                   |
+| `CSFKEYS`   | ICSF cryptographic keys and services     |
+| `DIGTCERT`  | Digital Certificates                     |
+| `DIGTRING`  | Key rings                                |
+
 
 Want more? Edit the `classes` line in the source. It's literally one line. Go nuts.
 
@@ -80,13 +89,17 @@ Want more? Edit the `classes` line in the source. It's literally one line. Go nu
 ## [ RUNNING IT ]
 
 **From TSO/ISPF:**
-Upload the RACFURY.rexx to your REXX LIB or use the XMIT file
+Upload the `RACFURY.rexx` to your REXX LIB or use the `RACFURY.XMIT` file.
+
 ```
 EXEC 'YOUR.REXX.LIB(RACFURY)'
 ```
 
 **From z/OS Unix (OMVS/SSH/USS):**
+Upload  `RACFURY.rexx` into an USS folder.
+
 ```sh
+chmod +x RACFURY/rexx
 ./RACFURY.rexx
 ```
 
