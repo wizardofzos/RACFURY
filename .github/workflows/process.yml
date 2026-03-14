@@ -1,25 +1,22 @@
-name: Generate XMIT
+name: Build and Release RACFURY
 
 on:
   push:
-    branches: [ main ]
-  workflow_dispatch:
+    tags:
+      - "v*"
 
 permissions:
   contents: write
 
 jobs:
-  process:
+  release:
     runs-on: ubuntu-latest
 
-    outputs:
-      changed: ${{ steps.commit.outputs.changed }}
-
     steps:
-    - name: Checkout repository
+    - name: Checkout
       uses: actions/checkout@v4
       with:
-        persist-credentials: true
+        fetch-depth: 0
 
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -30,49 +27,23 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install git+https://github.com/wizardofzos/xmi.git@creation
-       
-    - name: Run processing script
+
+    - name: Generate XMIT
       run: |
         mkdir -p $RUNNER_TEMP/RACFURY.PDS
         python .github/scripts/generate_xmit.py $RUNNER_TEMP/RACFURY.PDS
 
-    - name: Commit changes
-      id: commit
+    - name: Read RELEASE.md
+      id: release_notes
       run: |
-        git config --global user.name "github-actions"
-        git config --global user.email "actions@github.com"
-
-        git add RACFURY.XMIT
-
-        if git diff --cached --quiet; then
-          echo "No changes detected"
-          echo "changed=false" >> $GITHUB_OUTPUT
-        else
-          git commit -m "Automated XMI generation"
-          git push
-          echo "changed=true" >> $GITHUB_OUTPUT
-        fi
-
-  release:
-    needs: process
-    if: needs.process.outputs.changed == 'true'
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-
-    - name: Create tag
-      id: tag
-      run: |
-        VERSION="racfury-$(date +'%Y%m%d-%H%M%S')"
-        git tag $VERSION
-        git push origin $VERSION
-        echo "tag=$VERSION" >> $GITHUB_OUTPUT
+        echo "body<<EOF" >> $GITHUB_OUTPUT
+        cat RELEASE.md >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
 
     - name: Create Release
       uses: softprops/action-gh-release@v2
       with:
-        tag_name: ${{ steps.tag.outputs.tag }}
-        generate_release_notes: true
+        tag_name: ${{ github.ref_name }}
+        name: ${{ github.ref_name }}
+        body: ${{ steps.release_notes.outputs.body }}
         files: RACFURY.XMIT
