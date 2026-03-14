@@ -36,10 +36,12 @@ jobs:
     - name: Read RELEASE.md
       id: release_notes
       run: |
-        echo "body<<EOF" >> $GITHUB_OUTPUT
-        cat RELEASE.md >> $GITHUB_OUTPUT
-        echo "EOF" >> $GITHUB_OUTPUT
-
+        {
+          echo "body<<EOF"
+          cat RELEASE.md
+          echo "EOF"
+        } >> $GITHUB_OUTPUT
+        
     - name: Create Release
       uses: softprops/action-gh-release@v2
       with:
