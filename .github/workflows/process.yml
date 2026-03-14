@@ -1,4 +1,4 @@
-name: Build RACFURY Distribution
+name: Generate XMIT
 
 on:
   push:
@@ -9,17 +9,17 @@ permissions:
   contents: write
 
 jobs:
-
-  build:
+  process:
     runs-on: ubuntu-latest
 
     outputs:
       changed: ${{ steps.commit.outputs.changed }}
 
     steps:
-
     - name: Checkout repository
       uses: actions/checkout@v4
+      with:
+        persist-credentials: true
 
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -30,55 +30,49 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install git+https://github.com/wizardofzos/xmi.git@creation
-
-    - name: Generate PDS and XMIT
+       
+    - name: Run processing script
       run: |
-        mkdir -p build/RACFURY.PDS
-        python .github/scripts/generate_xmit.py build/RACFURY.PDS
+        mkdir -p $RUNNER_TEMP/RACFURY.PDS
+        python .github/scripts/generate_xmit.py $RUNNER_TEMP/RACFURY.PDS
 
-    - name: Commit artifacts
+    - name: Commit changes
       id: commit
       run: |
         git config --global user.name "github-actions"
         git config --global user.email "actions@github.com"
 
-        git add build/
+        git add RACFURY.XMIT
 
         if git diff --cached --quiet; then
           echo "No changes detected"
           echo "changed=false" >> $GITHUB_OUTPUT
         else
-          git commit -m "Automated RACFURY distribution build"
+          git commit -m "Automated XMI generation"
           git push
           echo "changed=true" >> $GITHUB_OUTPUT
         fi
 
-
   release:
-    needs: build
-    if: needs.build.outputs.changed == 'true'
+    needs: process
+    if: needs.process.outputs.changed == 'true'
     runs-on: ubuntu-latest
 
     steps:
-
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Create version
-      id: version
-      run: |
-        VERSION="racfury-$(date +'%Y.%m.%d')"
-        echo "version=$VERSION" >> $GITHUB_OUTPUT
-
     - name: Create tag
+      id: tag
       run: |
-        git tag ${{ steps.version.outputs.version }}
-        git push origin ${{ steps.version.outputs.version }}
+        VERSION="racfury-$(date +'%Y%m%d-%H%M%S')"
+        git tag $VERSION
+        git push origin $VERSION
+        echo "tag=$VERSION" >> $GITHUB_OUTPUT
 
     - name: Create Release
       uses: softprops/action-gh-release@v2
       with:
-        tag_name: ${{ steps.version.outputs.version }}
+        tag_name: ${{ steps.tag.outputs.tag }}
         generate_release_notes: true
-        files: |
-          build/*.xmit
+        files: RACFURY.XMIT
