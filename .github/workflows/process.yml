@@ -1,19 +1,25 @@
-name: Generate XMIT
+name: Build RACFURY Distribution
 
 on:
   push:
     branches: [ main ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
-  process:
+
+  build:
     runs-on: ubuntu-latest
 
+    outputs:
+      changed: ${{ steps.commit.outputs.changed }}
+
     steps:
+
     - name: Checkout repository
       uses: actions/checkout@v4
-      with:
-        persist-credentials: true
 
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -24,22 +30,55 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install git+https://github.com/wizardofzos/xmi.git@creation
-       
-    - name: Run processing script
-      run: |
-        mkdir -p $RUNNER_TEMP/RACFURY.PDS
-        python .github/scripts/generate_xmit.py $RUNNER_TEMP/RACFURY.PDS
 
-    - name: Commit changes
+    - name: Generate PDS and XMIT
+      run: |
+        mkdir -p build/RACFURY.PDS
+        python .github/scripts/generate_xmit.py build/RACFURY.PDS
+
+    - name: Commit artifacts
+      id: commit
       run: |
         git config --global user.name "github-actions"
         git config --global user.email "actions@github.com"
 
-        git add .
+        git add build/
 
         if git diff --cached --quiet; then
           echo "No changes detected"
+          echo "changed=false" >> $GITHUB_OUTPUT
         else
-          git commit -m "Automated XMI generation"
+          git commit -m "Automated RACFURY distribution build"
           git push
+          echo "changed=true" >> $GITHUB_OUTPUT
         fi
+
+
+  release:
+    needs: build
+    if: needs.build.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Create version
+      id: version
+      run: |
+        VERSION="racfury-$(date +'%Y.%m.%d')"
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+    - name: Create tag
+      run: |
+        git tag ${{ steps.version.outputs.version }}
+        git push origin ${{ steps.version.outputs.version }}
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: ${{ steps.version.outputs.version }}
+        generate_release_notes: true
+        files: |
+          build/*.xmit
