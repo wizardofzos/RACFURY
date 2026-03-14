@@ -33,20 +33,10 @@ jobs:
         mkdir -p $RUNNER_TEMP/RACFURY.PDS
         python .github/scripts/generate_xmit.py $RUNNER_TEMP/RACFURY.PDS
 
-    - name: Read RELEASE.md
-      id: release_notes
-      shell: bash
-      run: |
-        {
-          echo 'body<<EOF'
-          cat RELEASE.md
-          echo 'EOF'
-        } >> "$GITHUB_OUTPUT"
-
     - name: Create Release
       uses: softprops/action-gh-release@v2
       with:
         tag_name: ${{ github.ref_name }}
         name: ${{ github.ref_name }}
-        body: ${{ steps.release_notes.outputs.body }}
+        body_path: RELEASE.md
         files: RACFURY.XMIT
