@@ -20,7 +20,8 @@
 
 /* ---- Edit this list to add or remove general resource classes ------- */
 classes = 'FACILITY UNIXPRIV PROGRAM JESSPOOL OPERCMDS'
-classes = classes 'TSOAUTH SDSF SURROGAT'
+classes = classes 'TSOAUTH SDSF SURROGAT XFACILIT SDSF JESJOBS'
+classes = classes 'TERMINAL APPL VTAMAPPL CSFKEYS DIGTCERT DIGTRING'
 
 
 

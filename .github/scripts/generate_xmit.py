@@ -6,7 +6,7 @@ import shutil
 
 
 inputfile = Path('RACFURY.rexx')
-outputfile = Path('XMIT')
+outputfile = Path('RACFURY.XMIT')
 
 tmppds = Path(sys.argv[1])
 
