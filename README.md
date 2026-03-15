@@ -23,6 +23,7 @@
 It speaks to RACF (Resource Access Control Facility), IBM's iron-fisted security overlord that has been guarding mainframes since 1976. You can't bluff RACF. But you *can* ask it nicely what it'll let you do.
 
 That's what RACFURY does.
+Also, RACFURY is the *first github repo ever* using github actions and the xmi-library to autogenerate XMIT files on push.
 
 ---
 
